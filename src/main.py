@@ -21,50 +21,52 @@ from oauth2client.client import OAuth2WebServerFlow
 
 import datetime
 
-#client_id = 
-#client_secret = 
-#
-#scope = 'https://www.googleapis.com/auth/calendar'
-#
-#flow = OAuth2WebServerFlow(client_id, client_secret, scope)
+client_id = 
+client_secret = 
 
-def setup():
+scope = 'https://www.googleapis.com/auth/calendar'
+
+flow = OAuth2WebServerFlow(client_id, client_secret, scope)
+
+def setup_http():
     storage = Storage('credentials.dat')
-    
+
     credentials = storage.get()
-    
+
     if credentials is None or credentials.invalid:
         credentials = tools.run_flow(flow, storage, tools.argparser.parse_args())
-        
+
     http = httplib2.Http()
     http = credentials.authorize(http)
-    
+
     return http
 
-class Events:
-    # Shoud store a list of events. Currently, this is just a single event.
-    
+class calendarInstance:
+    # Create a calendar instance for a user
     def __init__(self, http):
         self.service = build('calendar', 'v3', http=http)
         self.events = []
-                 
-    def requestEvents(self, calendarId='primary', maxResults=100, singleEvents=True, timeMin=None):
+
+    def requestEvents(self, calendarId='primary', maxResults=10, singleEvents=True, timeMin=None):
+        # Request events from the calendar instance
+        # Store key event details in a list with dictionary entries
+
         if timeMin is None:
             timeMin = datetime.datetime.utcnow().isoformat() + 'Z'
-        
-        self.response = self.service.events().list(calendarId='primary', timeMin=timeMin, maxResults=10, singleEvents=True, orderBy='startTime').execute()
-        
-        for event in self.response.get('items', []):
+
+        response = self.service.events().list(calendarId=calendarId, timeMin=timeMin, maxResults=maxResults, singleEvents=singleEvents, orderBy='startTime').execute()
+
+        for event in response.get('items', []):
             self.events.append({
                     'name':         event['summary'],
                     'startTime':    event['start'].get('dateTime', None),
                     'endTime':      event['end'].get('dateTime', None),
-                    # Currently just uses the defaul colorId's as priority.
+                    # Currently just uses the default colorId's as priority.
                     'priority':     event.get('colorId', None)
                     })
 
 if __name__ == "__main__":
-    http = setup()
-    test = Events(http)
+    test = calendarInstance(setup_http())
     test.requestEvents()
-    print(test.events)
+    for item in test.events:
+        print(item)
