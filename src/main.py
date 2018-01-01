@@ -10,50 +10,28 @@
 # - The software should be able to categorize inputted tasks (based on increasingly few inputs) and schedule an appropriate time for it based on past data
 
 # Includes
-import httplib2
-from apiclient.discovery import build
+
+import calendar_handler as cal
 import datetime
 
-import authentication
-
-
-def setup_http():
-
-    credentials = authentication.get_credentials()
-
-    http = httplib2.Http()
-    http = credentials.authorize(http)
-
-    return http
-
-class calendarInstance:
-    # Create a calendar instance for a user
-    def __init__(self, http):
-        self.service = build('calendar', 'v3', http=http)
-        self.events = []
-
-    def requestEvents(self, calendarId='primary', maxResults=10, singleEvents=True, timeMin=None):
-        self.events = []
-        # Request events from the calendar instance
-        # Store key event details in a list with dictionary entries
-        # Should this function delete previous event lists? Probably
-
-        if timeMin is None:
-            timeMin = datetime.datetime.utcnow().isoformat() + 'Z'
-
-        response = self.service.events().list(calendarId=calendarId, timeMin=timeMin, maxResults=maxResults, singleEvents=singleEvents, orderBy='startTime').execute()
-
-        for event in response.get('items', []):
-            self.events.append({
-                    'name':         event['summary'],
-                    'startTime':    event['start'].get('dateTime', None),
-                    'endTime':      event['end'].get('dateTime', None),
-                    # Currently just uses the default colorId's as priority.
-                    'priority':     event.get('colorId', None)
-                    })
+def test_event_creation(calendar):
+    # Dylan's event creation scratch work
+    
+    oneHour = datetime.timedelta(hours=1)
+    
+    start = {'dateTime': (datetime.datetime.utcnow() + oneHour).isoformat() + 'Z'}
+    end = {'dateTime': (datetime.datetime.utcnow() + (2 * oneHour)).isoformat() + 'Z'}
+    
+    
+    test.createEvent('A dinner with friends', start = start, end = end, location='Bahen Center for Information Technology')
 
 if __name__ == "__main__":
-    test = calendarInstance(setup_http())
-    test.requestEvents()
+    test = cal.calendarInstance()
+    test_event_creation(test)
+    
+    
+    '''test.requestEvents()
     for item in test.events:
-        print(item)
+        print(item)'''
+        
+        
