@@ -11,30 +11,15 @@
 
 # Includes
 import httplib2
-import sys
-
 from apiclient.discovery import build
-from oauth2client import tools
-from oauth2client.file import Storage
-from oauth2client.client import AccessTokenRefreshError
-from oauth2client.client import OAuth2WebServerFlow
-
 import datetime
 
-client_id = 
-client_secret = 
+import authentication
 
-scope = 'https://www.googleapis.com/auth/calendar'
-
-flow = OAuth2WebServerFlow(client_id, client_secret, scope)
 
 def setup_http():
-    storage = Storage('credentials.dat')
 
-    credentials = storage.get()
-
-    if credentials is None or credentials.invalid:
-        credentials = tools.run_flow(flow, storage, tools.argparser.parse_args())
+    credentials = authentication.get_credentials()
 
     http = httplib2.Http()
     http = credentials.authorize(http)
@@ -48,8 +33,10 @@ class calendarInstance:
         self.events = []
 
     def requestEvents(self, calendarId='primary', maxResults=10, singleEvents=True, timeMin=None):
+        self.events = []
         # Request events from the calendar instance
         # Store key event details in a list with dictionary entries
+        # Should this function delete previous event lists? Probably
 
         if timeMin is None:
             timeMin = datetime.datetime.utcnow().isoformat() + 'Z'
