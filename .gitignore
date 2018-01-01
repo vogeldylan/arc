@@ -1,2 +1,6 @@
+# Authentication files
 *.dat
 *.json
+
+# Generated files
+__pycache__
