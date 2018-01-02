@@ -1,3 +1,15 @@
+'''
+    FILENAME:       calendar_handler.py
+    DEPENDENCIES:
+    DESCRIPTION:    Handles interfacing with a user's calendar and events
+                    Implements the calendarInstance class
+    AUTHORS:        Dylan Vogel & Google Calendar API documentation
+    MODIFIED:       2018-1-1
+
+    NOTE:           TODO: See todos in comments
+
+ '''
+
 import httplib2
 import authentication
 from apiclient.discovery import build
@@ -19,26 +31,45 @@ class calendarInstance:
         http = setup_http()
         self.service = build('calendar', 'v3', http=http)
         self.events = []
+        
+    def __matchID(self, ID, array):
+        # Return a list of events with a matching ID using list comprehension
+        return [item for item in array if item['id'] == ID]
+    
+    def __updateLocalEvents(self, event):
+        # Update the local copy of self.events
+        # Separate function because it's used by both requestEvents and createEvent
+        
+        self.events.append({
+                        'name':         event['summary'],
+                        'startTime':    event['start'].get('dateTime', None),
+                        'endTime':      event['end'].get('dateTime', None),
+                        'priority':     event.get('colorId', None), # Currently uses the default colorId's as priority.
+                        'id':           event['id']
+                        })
+    
 
     def requestEvents(self, calendarId='primary', maxResults=10, singleEvents=True, timeMin=None):
         # Request events from the user's calendar
         # Store key event details in a list with dictionary entries
+        
 
-        # should have some way of telling that an event has already been loaded
-        self.events = []
-
+        # Generate current time for events request
         if timeMin is None:
             timeMin = datetime.datetime.utcnow().isoformat() + 'Z'
 
+        # Ask Google Calendar for a list of events
         response = self.service.events().list(calendarId=calendarId, timeMin=timeMin, maxResults=maxResults, singleEvents=singleEvents, orderBy='startTime').execute()
 
+
         for event in response.get('items', []):
-            self.events.append({
-                    'name':         event['summary'],
-                    'startTime':    event['start'].get('dateTime', None),
-                    'endTime':      event['end'].get('dateTime', None),
-                    'priority':     event.get('colorId', None) # Currently uses the default colorId's as priority.
-                    })
+            # Check if an event with the same ID has already been loaded
+            matches = self.__matchID(event['id'], self.events)
+            if len(matches) > 0:
+                continue;
+                # TODO: check if the remote event has been updated more recently than the local copy, and make changes if so
+            else:
+                self.__updateLocalEvents(event)
 
     def __defaultTime(self):
         # Create default start and end times for testing the createEvent function
@@ -64,10 +95,12 @@ class calendarInstance:
 
 
     def createEvent(self, summary, start={}, end={}, location=None, description=None):
+        # Add an event to the user's primary calendar
+        # TODO: add more data fields
         
         # Google Calendar (understandably) doesn't seem to like it when start and end times aren't specified
         # However, it doesn't seem to care about missing timeZone information
-        
+
         # Event starts now and lasts one hour
         defaultStart, defaultEnd = self.__defaultTime();
 
@@ -80,7 +113,7 @@ class calendarInstance:
             'dateTime': end.get('dateTime', defaultEnd['dateTime']),
             #'timeZone': end.get('timeZone', defaultEnd['timeZone'])
             }
-        
+
         event = {
             'summary': summary,
             'start': {
@@ -98,7 +131,11 @@ class calendarInstance:
         if description != None:
             event['description'] = description
 
-        
+        # Send Google Calendar the new event and have it return the event it creates
+        # Event it returns is important for Google-generated data, like event ID tag
         event = self.service.events().insert(calendarId = 'primary', body = event).execute()
+        
+        # Update our local copy with this event
+        self.__updateLocalEvents(event)
         
         return event
