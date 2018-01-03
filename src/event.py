@@ -9,6 +9,9 @@
 
  '''
  
+from dateutil.parser import parse
+ 
+
 class Event:
     '''Stores event information.'''
     
@@ -25,14 +28,14 @@ class Event:
          self.priority = item.get('priority', None)
          self.location = item.get('location', None)
          self.description = item.get('description', None)
-         self.id = item.get('id', None)
+         self.event_id = item.get('id', None)
     
     def printEvent(self):
         print("Name: ", self.name)
-        print("Start: ", self.startTime.get('dateTime', None))
-        print("End: ", self.endTime.get('dateTime', None))
+        print("Start: ", self.startTime)
+        print("End: ", self.endTime)
         print("Priority: ", self.priority)
-        print("ID: ", self.id)
+        print("ID: ", self.event_id)
     
     @property
     def name(self):
@@ -50,7 +53,7 @@ class Event:
     
     @startTime.setter
     def startTime(self, value):
-        self._startTime = value
+        self._startTime = parse(value.get('dateTime', None))
         
     @property
     def endTime(self):
@@ -59,7 +62,7 @@ class Event:
     
     @endTime.setter
     def endTime(self, value):
-        self._endTime = value
+        self._endTime = parse(value.get('dateTime', None))
         
     @property 
     def priority(self):
@@ -89,10 +92,10 @@ class Event:
         self._description = value
         
     @property
-    def id(self):
+    def event_id(self):
         '''str: Google Calendar id of event'''
-        return self._id
+        return self._event_id
         
-    @id.setter
-    def id(self, value):
-        self._id = id
+    @event_id.setter
+    def event_id(self, value):
+        self._event_id = value
