@@ -27,5 +27,6 @@ if __name__ == "__main__":
     #test_event_creation(test)
 
     test.requestEvents()
-    for item in test.events:
-        print(item)
+    for event in test.events:
+        event.printEvent()
+        print("")

@@ -12,6 +12,7 @@
 
 import httplib2
 import authentication
+import event as eventClass
 from apiclient.discovery import build
 
 import datetime
@@ -34,19 +35,21 @@ class calendarInstance:
         
     def __matchID(self, ID, array):
         # Return a list of events with a matching ID using list comprehension
-        return [item for item in array if item['id'] == ID]
+        return [item for item in array if item.id == ID]
     
     def __updateLocalEvents(self, event):
         # Update the local copy of self.events
         # Separate function because it's used by both requestEvents and createEvent
         
-        self.events.append({
-                        'name':         event['summary'],
-                        'startTime':    event['start'].get('dateTime', None),
-                        'endTime':      event['end'].get('dateTime', None),
-                        'priority':     event.get('colorId', None), # Currently uses the default colorId's as priority.
-                        'id':           event['id']
-                        })
+        # self.events.append({
+        #                 'name':         event['summary'],
+        #                 'startTime':    event['start'].get('dateTime', None),
+        #                 'endTime':      event['end'].get('dateTime', None),
+        #                 'priority':     event.get('colorId', None), # Currently uses the default colorId's as priority.
+        #                 'id':           event['id']
+        #                 })
+        
+        self.events.append(eventClass.Event(event))
     
 
     def requestEvents(self, calendarId='primary', maxResults=10, singleEvents=True, timeMin=None):
