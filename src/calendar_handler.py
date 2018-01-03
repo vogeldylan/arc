@@ -12,7 +12,7 @@
 
 import httplib2
 import authentication
-import event as eventClass
+import event 
 from apiclient.discovery import build
 
 import datetime
@@ -35,9 +35,9 @@ class calendarInstance:
         
     def __matchID(self, ID, array):
         # Return a list of events with a matching ID using list comprehension
-        return [item for item in array if item.id == ID]
+        return [item for item in array if item.event_id == ID]
     
-    def __updateLocalEvents(self, event):
+    def __updateLocalEvents(self, info):
         # Update the local copy of self.events
         # Separate function because it's used by both requestEvents and createEvent
         
@@ -49,7 +49,7 @@ class calendarInstance:
         #                 'id':           event['id']
         #                 })
         
-        self.events.append(eventClass.Event(event))
+        self.events.append(event.Event(info))
     
 
     def requestEvents(self, calendarId='primary', maxResults=10, singleEvents=True, timeMin=None):
@@ -142,3 +142,4 @@ class calendarInstance:
         self.__updateLocalEvents(event)
         
         return event
+    
